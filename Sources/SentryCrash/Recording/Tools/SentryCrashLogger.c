@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 
 // Compiler hints for "if" statements
@@ -94,6 +95,8 @@ static inline void writeFmtToLog(const char* fmt, ...)
     va_end(args);
 }
 
+static pthread_mutex_t g_loglock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+
 #if SentryCrashLOGGER_CBufferSize > 0
 
 /** The file descriptor where log entries get written. */
@@ -102,9 +105,10 @@ static int g_fd = -1;
 
 static void writeToLog(const char* const str)
 {
+    int messageLength = (int)strlen(str);
     if(g_fd >= 0)
     {
-        int bytesToWrite = (int)strlen(str);
+        int bytesToWrite = messageLength;
         const char* pos = str;
         while(bytesToWrite > 0)
         {
@@ -117,7 +121,7 @@ static void writeToLog(const char* const str)
             pos += bytesWritten;
         }
     }
-    write(STDOUT_FILENO, str, strlen(str));
+    write(STDOUT_FILENO, str, messageLength);
 }
 
 static inline void writeFmtArgsToLog(const char* fmt, va_list args)
@@ -260,10 +264,12 @@ bool sentrycrashlog_clearLogFile()
 void i_sentrycrashlog_logCBasic(const char* const fmt, ...)
 {
     va_list args;
+	pthread_mutex_lock(&g_loglock);
     va_start(args,fmt);
     writeFmtArgsToLog(fmt, args);
     va_end(args);
     writeToLog("\n");
+	pthread_mutex_unlock(&g_loglock);
     flushLog();
 }
 
@@ -273,12 +279,14 @@ void i_sentrycrashlog_logC(const char* const level,
                   const char* const function,
                   const char* const fmt, ...)
 {
+	pthread_mutex_lock(&g_loglock);
     writeFmtToLog("%s: %s (%u): %s: ", level, lastPathEntry(file), line, function);
     va_list args;
     va_start(args,fmt);
     writeFmtArgsToLog(fmt, args);
     va_end(args);
     writeToLog("\n");
+	pthread_mutex_unlock(&g_loglock);
     flushLog();
 }
 
@@ -305,6 +313,7 @@ void i_sentrycrashlog_logObjCBasic(CFStringRef fmt, ...)
 
     int bufferLength = (int)CFStringGetLength(entry) * 4 + 1;
     char* stringBuffer = malloc((unsigned)bufferLength);
+	pthread_mutex_lock(&g_loglock);
     if(CFStringGetCString(entry, stringBuffer, (CFIndex)bufferLength, kCFStringEncodingUTF8))
     {
         writeToLog(stringBuffer);
@@ -314,6 +323,7 @@ void i_sentrycrashlog_logObjCBasic(CFStringRef fmt, ...)
         writeToLog("Could not convert log string to UTF-8. No logging performed.");
     }
     writeToLog("\n");
+	pthread_mutex_unlock(&g_loglock);
 
     free(stringBuffer);
     CFRelease(entry);
