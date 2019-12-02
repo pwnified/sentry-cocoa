@@ -55,7 +55,7 @@
  * Unless you're logging from within signal handlers, it's safe to set it to 0.
  */
 #ifndef SentryCrashLOGGER_CBufferSize
-#define SentryCrashLOGGER_CBufferSize   (1024 * 4) // emoji letters 2 bytes and ligatures 2 bytes ~4 bytes/character
+#define SentryCrashLOGGER_CBufferSize 1024
 #endif
 
 /** Where console logs will be written */
@@ -130,7 +130,7 @@ static void flushLog(void)
         }
     }
     write(STDOUT_FILENO, g_linebuffer, g_linebufsize);
-	resetBuffer();
+    resetBuffer();
 }
 
 
@@ -213,10 +213,10 @@ static FILE* g_file = NULL;
 
 static void setLogFD(FILE* file)
 {
-	if (g_file != NULL)
-	{
-		fclose(g_file);
-		g_file = NULL;
+    if (g_file != NULL)
+    {
+        fclose(g_file);
+        g_file = NULL;
 	}
 	// Don't allow pointing to stdout etc.
     if (file != stdout && file != stderr && file != stdin)
@@ -261,7 +261,7 @@ static void flushLog(void)
 {
 	if(g_file != NULL)
 	{
-		fflush(g_file);
+	    fflush(g_file);
 	}
 	fflush(stdout);
 }
