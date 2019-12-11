@@ -120,7 +120,7 @@ static inline NSString *hexAddress(NSNumber *value) {
     for (int i = 0; i < count; i++) {
         // If line count is above kMaxConsoleLines, remove starting at kRequiredFirstLines. Otherwise log them all.
         if (count <= kMaxConsoleLines || i < kRequiredFirstLines || i >= (count - kMaxConsoleLines + kRequiredFirstLines)) {
-            NSString *key = [NSString stringWithFormat:@"log:%03d", i];
+            NSString *key = [NSString stringWithFormat:@"log:%05d", i];
             extra[key] = lines[i];
         }
     }

@@ -107,7 +107,7 @@ static int g_linebufsize = 0;
 */
 static inline void resetBuffer()
 {
-	g_linebufsize = 0;
+    g_linebufsize = 0;
 }
 
 /** Writes the buffer to the log in one atomic operation, a single call to write. To avoid
@@ -139,18 +139,18 @@ static void flushLog(void)
 
 static void writeToLog(const char* const str)
 {
-	char *pos = &g_linebuffer[g_linebufsize];
-	const int last = SentryCrashLOGGER_CBufferSize;
-	int remaining = last - g_linebufsize;
-	g_linebufsize += Min(strlcpy(pos, str, remaining), remaining);
-	
-	// Make sure a newline exists on lines that overflow.
-	if (g_linebufsize >= last) {
-		if (g_linebuffer[last-1] != '\n') {
-			g_linebuffer[last-1] = '\n';
-			g_linebuffer[last] = '\0';
-		}
-	}
+    char *pos = &g_linebuffer[g_linebufsize];
+    const int last = SentryCrashLOGGER_CBufferSize;
+    int remaining = last - g_linebufsize;
+    g_linebufsize += Min(strlcpy(pos, str, remaining), remaining);
+
+    // Make sure a newline exists on lines that overflow.
+    if (g_linebufsize >= last) {
+        if (g_linebuffer[last-1] != '\n') {
+            g_linebuffer[last-1] = '\n';
+            g_linebuffer[last] = '\0';
+        }
+    }
 }
 
 static void writeFmtArgsToLog(const char* fmt, va_list args)
@@ -169,15 +169,15 @@ static void writeFmtArgsToLog(const char* fmt, va_list args)
 
 static void setLogFD(int fd)
 {
-	if (g_fd >= 0)
-	{
+    if (g_fd >= 0)
+    {
         close(g_fd);
-		g_fd = -1;
-	}
-	// Don't allow pointing to stdout etc., stdout was intended to always be written as indicated by various code smells
+        g_fd = -1;
+    }
+    // Don't allow pointing to stdout etc., stdout was intended to always be written as indicated by various code smells
     if(fd != STDOUT_FILENO && fd != STDERR_FILENO && fd != STDIN_FILENO)
     {
-		g_fd = fd;
+        g_fd = fd;
     }
 }
 
@@ -195,7 +195,7 @@ bool sentrycrashlog_setLogFilename(const char* filename, bool overwrite)
         unlikely_if(fd < 0)
         {
             writeFmtToLog("SentryCrashLogger: Could not open %s: %s\n", filename, strerror(errno));
-			flushLog();
+            flushLog();
             return false;
         }
         if(filename != g_logFilename)
@@ -218,11 +218,11 @@ static void setLogFD(FILE* file)
     {
         fclose(g_file);
         g_file = NULL;
-	}
-	// Don't allow pointing to stdout etc.
+    }
+    // Don't allow pointing to stdout etc.
     if (file != stdout && file != stderr && file != stdin)
     {
-		g_file = file;
+        g_file = file;
     }
 }
 
@@ -243,28 +243,28 @@ static void writeFmtArgsToLog(const char* fmt, va_list args)
     }
     else
     {
-		// if printing to both streams, copy the args. va_copy is very efficient
-		if(g_file != NULL)
-		{
-			va_list cpyargs;
-			va_copy(cpyargs, args);
-			vfprintf(g_file, fmt, args);
-			vfprintf(stdout, fmt, cpyargs);
-		}
-		else
-		{
-			vfprintf(stdout, fmt, args);
-		}
+        // if printing to both streams, copy the args. va_copy is very efficient
+        if(g_file != NULL)
+        {
+            va_list cpyargs;
+            va_copy(cpyargs, args);
+            vfprintf(g_file, fmt, args);
+            vfprintf(stdout, fmt, cpyargs);
+        }
+        else
+        {
+            vfprintf(stdout, fmt, args);
+        }
     }
 }
 
 static void flushLog(void)
 {
-	if(g_file != NULL)
-	{
-	    fflush(g_file);
-	}
-	fflush(stdout);
+    if(g_file != NULL)
+    {
+        fflush(g_file);
+    }
+    fflush(stdout);
 }
 
 bool sentrycrashlog_setLogFilename(const char* filename, bool overwrite)
@@ -276,7 +276,7 @@ bool sentrycrashlog_setLogFilename(const char* filename, bool overwrite)
         file = fopen(filename, overwrite ? "wb" : "ab");
         unlikely_if(file == NULL) {
             writeFmtToLog("SentryCrashLogger: Could not open %s: %s\n", filename, strerror(errno));
-			flushLog();
+            flushLog();
             return false;
         }
     }
@@ -374,7 +374,7 @@ void i_sentrycrashlog_logObjCBasic(CFStringRef fmt, ...)
         RecursiveScopedLock(lock);
         writeToLog(stringBuffer);
         writeToLog("\n");
-		flushLog();
+        flushLog();
     }
     else
     {
